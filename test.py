@@ -1,6 +1,6 @@
 # import httpx
 import requests
-import json as json_lib
+import json
 
 # api endpoint and get request
 url = "http://localhost:11434/api/generate"
@@ -26,10 +26,10 @@ print("\n" + "=" * 50 + "\n")
 
 # Try to parse it as JSON
 try:
-    parsed = json_lib.loads(data["response"])
+    parsed = json.loads(data["response"])
     print("Successfully parsed as JSON!")
     print(f"Required skills: {parsed['required_skills']}")
     print(f"Experience level: {parsed['experience_level']}")
-except json_lib.JSONDecodeError as e:
+except json.JSONDecodeError as e:
     print(f"Failed to parse as JSON: {e}")
     print("The LLM didn't follow instructions perfectly")
