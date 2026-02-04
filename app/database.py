@@ -1,5 +1,9 @@
+from typing import Any
+
+
 import sqlite3
 from pathlib import Path
+import json
 
 # Where to store the database file
 DB_PATH = Path(__file__).parent.parent / "job_analyzer.db"
@@ -36,15 +40,89 @@ def init_db():
     connection.close()
 
 
-# if __name__ == "__main__":
-#     print("Initializing database...")
-#     init_db()
-#     print("Database initialized!")
+def save_analysis(jobDesc: str, companyName: str, result: dict) -> int:
+    """
+    Saves an analysis to the database.
+    Returns the ID of the inserted row.
+    """
+    connection = get_db()
+    cursor = connection.cursor()
 
-#     # Test that it worked
-#     conn = get_db()
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-#     tables = cursor.fetchall()
-#     print(f"Tables in database: {[table['name'] for table in tables]}")
-#     conn.close()
+    cursor.execute(
+        """
+        INSERT INTO analyses (job_description, company_name, result)
+        VALUES (?, ?, ?)
+        """,
+        (jobDesc, companyName, json.dumps(result)),
+    )
+
+    insertedID = cursor.lastrowid
+    connection.commit()
+    connection.close()
+
+    return insertedID
+
+
+def get_analysis_by_id(id: int) -> dict:
+    """
+    Fetches a single analysis by ID.
+    Returns None if not found.
+    """
+    connection = get_db()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM analyses WHERE id = ?", (id,))
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        return None
+
+    analysis = dict(row)
+    analysis["result"] = json.loads(analysis["result"])
+
+    return analysis
+
+
+def get_all_analyses() -> list:
+    """
+    Fetches all analyses, most recent first.
+    """
+    connection = get_db()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM analyses ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    connection.close()
+
+    analyses = [dict(row) for row in rows]
+    for analysis in analyses:
+        analysis["result"] = json.loads(analysis["result"])
+
+    return analyses
+
+
+# Testoing db file
+# if __name__ == "__main__":
+#     # Initialize
+#     init_db()
+
+#     # Test save
+#     test_result = {
+#         "required_skills": ["Python", "SQL"],
+#         "preferred_skills": ["Docker"],
+#         "technologies": ["FastAPI"],
+#         "experience_level": "mid",
+#         "summary": "Test job",
+#     }
+
+#     saved_id = save_analysis("Test job description", "TestCo", test_result)
+#     print(f"Saved with ID: {saved_id}")
+
+#     # Test get by ID
+#     fetched = get_analysis_by_id(saved_id)
+#     print(f"Fetched: {fetched}")
+
+#     # Test get all
+#     all_analyses = get_all_analyses()
+#     print(f"Total analyses: {len(all_analyses)}")
