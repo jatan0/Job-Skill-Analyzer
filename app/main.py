@@ -1,3 +1,4 @@
+import http
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
@@ -46,23 +47,36 @@ def analyze_endpoint(request: AnalyzeRequest):
     """
     Analyzes a job description and returns structured data.
     """
-    job_desc = request.job_description
-    company = request.company_name.strip() if request.company_name else None
+    try:
+        job_desc = request.job_description
+        company = request.company_name.strip() if request.company_name else None
 
-    analysis_result = analyze_job_description(job_desc, company)
+        analysis_result = analyze_job_description(job_desc, company)
 
-    saved_id = save_analysis(job_desc, company, analysis_result)
+        saved_id = save_analysis(job_desc, company, analysis_result)
 
-    full_analysis = get_analysis_by_id(saved_id)
+        full_analysis = get_analysis_by_id(saved_id)
 
-    response = {
-        "id": full_analysis["id"],
-        "company_name": full_analysis["company_name"],
-        "created_at": full_analysis["created_at"],
-        **full_analysis["result"],
-    }
+        response = {
+            "id": full_analysis["id"],
+            "company_name": full_analysis["company_name"],
+            "created_at": full_analysis["created_at"],
+            **full_analysis["result"],
+        }
 
-    return response
+        return response
+
+    except ConnectionError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    except TimeoutError as e:
+        raise HTTPException(status_code=504, detail=str(e))
+
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=f"AI Processing error: {str(e)}")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")
 
 
 # TODO: GET /api/history endpoint
