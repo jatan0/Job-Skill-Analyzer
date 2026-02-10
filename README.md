@@ -4,11 +4,13 @@ A REST API that analyzes job descriptions using AI to extract required skills, t
 
 ## Why I Built This
 
-I built this project to practice designing and deploying a production-style REST API that integrates a local LLM, persists structured results, and handles errors gracefully. The goal was to simulate a real backend service that processes unstructured text, applies AI-driven analysis, and exposes clean, documented endpoints.
+I built this project to get hands-on experience building a REST API end to end instead of just writing scripts. I wanted to understand what it takes to run an LLM-backed service locally, handle requests properly, and return structured data that other systems could actually use.
 
-I chose to work with Ollama and Llama 3.1 specifically because I wanted to explore local LLM integration and understand how to leverage my GPU for practical AI applications beyond cloud APIs. While the initial use case focuses on job description analysis, the core architecture—accepting unstructured input, processing it through an AI model, and returning structured JSON—translates to many document analysis scenarios.
+Rather than using a hosted API, I integrated Llama 3.1 through Ollama so I could experiment with running inference on my own GPU. That forced me to think about response times, model behavior, and how to deal with outputs that are not always perfectly formatted.
 
-This project pushed me into unfamiliar territory with FastAPI, async Python, and prompt engineering for structured outputs, which was exactly what I was looking for: a chance to build something modern, functional, and applicable to real-world backend development.
+The current use case focuses on analyzing job descriptions, but the broader goal was to design a backend pattern that accepts unstructured text, processes it through a model, validates the output, and stores the results for later retrieval.
+
+This was also my first time working seriously with FastAPI and async Python. I ran into issues around request validation and inconsistent model responses, which led me to tighten up schema validation and add more defensive error handling.
 
 ## Tech Stack
 
@@ -38,8 +40,8 @@ This project pushed me into unfamiliar territory with FastAPI, async Python, and
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/job-skill-analyzer
-cd job-skill-analyzer
+git clone https://github.com/jatan0/Job-Skill-Analyzer
+cd Job-Skill-Analyzer
 ```
 
 2. Install dependencies
@@ -108,10 +110,10 @@ Returns a specific analysis by ID. Returns 404 if not found.
 
 ## Key Technical Learnings
 
-- Building async REST APIs with FastAPI and proper error handling
+- Designing async REST endpoints with FastAPI and understanding how request handling differs from synchronous scripts
 - Integrating local LLMs (Ollama) with prompt engineering for structured outputs
-- Database design for caching AI results
-- GPU-accelerated inference on consumer hardware
+- Structuring a small service into clear layers (API routes, AI service, database access) instead of mixing logic in one file
+- Implementing simple caching with SQLite to avoid repeated model inference and reduce latency
 
 ## Project Structure
 
@@ -129,5 +131,3 @@ job-skill-analyzer/
 ## License
 
 MIT
-
-```
