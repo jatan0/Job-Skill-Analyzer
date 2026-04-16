@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.job_analyzer.db
+*.db
+.env
+.venv/

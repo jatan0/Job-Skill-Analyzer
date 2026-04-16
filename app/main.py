@@ -1,11 +1,8 @@
-import http
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
-import json
 
 from .database import (
-    get_db,
     init_db,
     save_analysis,
     get_analysis_by_id,
@@ -13,18 +10,14 @@ from .database import (
 )
 from .ai_service import analyze_job_description
 
-# Create FastAPI app
 app = FastAPI(title="Job Skill Analyzer API")
 
 
-# Initialize database on startup
 @app.on_event("startup")
 def startup_event():
     init_db()
-    print("Database initialized")
 
 
-# TODO: Define request/response models using Pydantic
 class AnalysisResponse(BaseModel):
     id: int
     company_name: Optional[str]
@@ -37,15 +30,14 @@ class AnalysisResponse(BaseModel):
 
 
 class AnalyzeRequest(BaseModel):
-    job_description: str
+    job_description: str = Field(..., min_length=1)
     company_name: Optional[str] = None
 
 
-# TODO: POST /api/analyze endpoint
-@app.post("/api/analyze")
+@app.post("/api/analyze", response_model=AnalysisResponse)
 def analyze_endpoint(request: AnalyzeRequest):
     """
-    Analyzes a job description and returns structured data.
+    Analyzes a job description and returns structured data
     """
     try:
         job_desc = request.job_description
@@ -73,27 +65,37 @@ def analyze_endpoint(request: AnalyzeRequest):
         raise HTTPException(status_code=504, detail=str(e))
 
     except ValueError as e:
-        raise HTTPException(status_code=500, detail=f"AI Processing error: {str(e)}")
+        raise HTTPException(status_code=500, detail="AI processing error")
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected Error: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Unexpected internal server error")
 
 
-# TODO: GET /api/history endpoint
-@app.get("/api/history")
+@app.get("/api/history", response_model=List[AnalysisResponse])
 def get_history():
     """
     Returns all past analyses.
     """
     analyses = get_all_analyses()
-    return analyses
+
+    response = []
+    for analysis in analyses:
+        response.append(
+            {
+                "id": analysis["id"],
+                "company_name": analysis["company_name"],
+                "created_at": analysis["created_at"],
+                **analysis["result"],
+            }
+        )
+
+    return response
 
 
-# TODO: GET /api/analysis/{id} endpoint
-@app.get("/api/analysis/{id}")
+@app.get("/api/analysis/{id}", response_model=AnalysisResponse)
 def get_single_analysis(id: int):
     """
-    Returns a single analysis by ID.
+    Returns a single analysis by ID
     """
     analysis = get_analysis_by_id(id)
     if analysis is None:

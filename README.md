@@ -10,14 +10,14 @@ Rather than using a hosted API, I integrated Llama 3.1 through Ollama so I could
 
 The current use case focuses on analyzing job descriptions, but the broader goal was to design a backend pattern that accepts unstructured text, processes it through a model, validates the output, and stores the results for later retrieval.
 
-This was also my first time working seriously with FastAPI and async Python. I ran into issues around request validation and inconsistent model responses, which led me to tighten up schema validation and add more defensive error handling.
+This was also my first serious project using FastAPI. I ran into issues around request validation and inconsistent model responses, which led me to tighten up schema checks and add more defensive error handling.
 
 ## Tech Stack
 
 - **Python 3.x** - Core language
-- **FastAPI** - Web framework (chosen for automatic API docs and async support)
+- **FastAPI** - Web framework chosen for API development and automatic documentation
 - **Ollama + Llama 3.1 8B** - Local LLM for AI analysis
-- **SQLite** - Database for caching results
+- **SQLite** - Stores past analyses
 - **Uvicorn** - ASGI server
 
 ## Features
@@ -25,9 +25,16 @@ This was also my first time working seriously with FastAPI and async Python. I r
 - Analyzes job descriptions and extracts structured data
 - Identifies required vs. preferred skills
 - Detects technologies and experience level
-- Caches results for future reference
+- Stores analysis history in SQLite
 - RESTful API with automatic documentation
 - Graceful error handling for AI service failures
+- Handles malformed LLM output with basic validation
+
+## How It Works
+
+1. The API receives a job description through a POST request
+2. The backend sends the text to a local Ollama model with a prompt requesting structured JSON output
+3. The response is parsed, validated, stored in SQLite, and returned to the client
 
 ## Prerequisites
 
@@ -108,12 +115,22 @@ Returns all past analyses, most recent first.
 
 Returns a specific analysis by ID. Returns 404 if not found.
 
+## Current Limitations
+
+- Requires a locally running Ollama instance
+- Uses synchronous request handling
+- LLM responses can still be inconsistent or malformed
+- SQLite is used for simple local storage, not production-scale deployment
+- No authentication or authorization
+- Stores analysis history, but does not currently implement deduplicated caching
+
 ## Key Technical Learnings
 
-- Designing async REST endpoints with FastAPI and understanding how request handling differs from synchronous scripts
-- Integrating local LLMs (Ollama) with prompt engineering for structured outputs
-- Structuring a small service into clear layers (API routes, AI service, database access) instead of mixing logic in one file
-- Implementing simple caching with SQLite to avoid repeated model inference and reduce latency
+- Designing REST endpoints with FastAPI
+- Integrating a local LLM through Ollama and prompting for structured JSON output
+- Separating application responsibilities into API, AI service, and database layers
+- Validating and handling unreliable model output before returning results
+- Persisting analysis results for later retrieval with SQLite
 
 ## Project Structure
 

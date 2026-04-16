@@ -1,18 +1,14 @@
-from typing import Any
-
-
 import sqlite3
 from pathlib import Path
 import json
 
-# Where to store the database file
 DB_PATH = Path(__file__).parent.parent / "job_analyzer.db"
 
 
 def get_db():
     """
-    Creates/connects to SQLite database.
-    Returns a connection object.
+    Creates/connects to SQLite database
+    Returns a connection object
     """
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
@@ -21,7 +17,7 @@ def get_db():
 
 def init_db():
     """
-    Creates the analyses table if it doesn't exist.
+    Creates the analyses table if it doesn't exist
     """
     connection = get_db()
     cursor = connection.cursor()
@@ -42,8 +38,8 @@ def init_db():
 
 def save_analysis(jobDesc: str, companyName: str, result: dict) -> int:
     """
-    Saves an analysis to the database.
-    Returns the ID of the inserted row.
+    Saves an analysis to the database
+    Returns the ID of the inserted row
     """
     connection = get_db()
     cursor = connection.cursor()
@@ -63,10 +59,10 @@ def save_analysis(jobDesc: str, companyName: str, result: dict) -> int:
     return insertedID
 
 
-def get_analysis_by_id(id: int) -> dict:
+def get_analysis_by_id(id: int) -> dict | None:
     """
-    Fetches a single analysis by ID.
-    Returns None if not found.
+    Fetches a single analysis by ID
+    Returns None if not found
     """
     connection = get_db()
     cursor = connection.cursor()
