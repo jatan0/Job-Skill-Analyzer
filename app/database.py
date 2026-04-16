@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 import json
+from typing import Optional, List
 
 DB_PATH = Path(__file__).parent.parent / "job_analyzer.db"
 
@@ -59,7 +60,7 @@ def save_analysis(jobDesc: str, companyName: str, result: dict) -> int:
     return insertedID
 
 
-def get_analysis_by_id(id: int) -> dict | None:
+def get_analysis_by_id(id: int) -> Optional[dict]:
     """
     Fetches a single analysis by ID
     Returns None if not found
@@ -80,7 +81,7 @@ def get_analysis_by_id(id: int) -> dict | None:
     return analysis
 
 
-def get_all_analyses() -> list:
+def get_all_analyses() -> List[dict]:
     """
     Fetches all analyses, most recent first.
     """
@@ -96,29 +97,3 @@ def get_all_analyses() -> list:
         analysis["result"] = json.loads(analysis["result"])
 
     return analyses
-
-
-# Testoing db file
-# if __name__ == "__main__":
-#     # Initialize
-#     init_db()
-
-#     # Test save
-#     test_result = {
-#         "required_skills": ["Python", "SQL"],
-#         "preferred_skills": ["Docker"],
-#         "technologies": ["FastAPI"],
-#         "experience_level": "mid",
-#         "summary": "Test job",
-#     }
-
-#     saved_id = save_analysis("Test job description", "TestCo", test_result)
-#     print(f"Saved with ID: {saved_id}")
-
-#     # Test get by ID
-#     fetched = get_analysis_by_id(saved_id)
-#     print(f"Fetched: {fetched}")
-
-#     # Test get all
-#     all_analyses = get_all_analyses()
-#     print(f"Total analyses: {len(all_analyses)}")
